@@ -131,3 +131,35 @@ class ProcedureDocument(Model, TimeStampedMixin):
 
     class Meta:
         table = "scrape_legislative_proceduredocument"
+
+class LegislativeProposalDenorm(Model, TimeStampedMixin):
+    id = fields.IntField(pk=True)
+    proposal = fields.OneToOneField(
+        "models.LegislativeProposal",
+        related_name="denorm",
+        on_delete=fields.CASCADE,
+        index=True,
+        description="Reference to the original legislative proposal",
+    )
+
+    payload = fields.JSONField(
+        description="Serialized JSON snapshot of the full legislative proposal",
+    )
+
+    checksum = fields.CharField(
+        max_length=64,
+        null=True,
+        description="Optional hash to detect changes in payload",
+    )
+
+    notified = fields.BooleanField(
+        default=False,
+        description="Whether users have been notified about this proposal update",
+    )
+
+    class Meta:
+        table = "legislative_proposal_denorm"
+        table_description = "Legislative Proposal (Denormalized JSON)"
+
+    def __str__(self):
+        return f"Denorm for Proposal ID {self.proposal_id}"

@@ -1,8 +1,10 @@
-from typing import Optional, List, Dict, Any
-from tortoise.expressions import Q
+import json
+import hashlib
+from typing import Optional, List
 from tortoise.transactions import in_transaction
 from src.models import (
     LegislativeProposal,
+    LegislativeProposalDenorm
 )
 from src.schemas import (
     SerializedProposal,
@@ -16,16 +18,11 @@ from src.schemas import (
 import structlog
 
 logger = structlog.get_logger()
-CACHE_TTL = 60 * 60 * 24  # 1 day
-
-# Assuming Valkey (Redis) client is async
-from src.utils.cache import json_cache
-
 
 async def serialized_proposal(proposal_id: Optional[int] = None) -> Optional[SerializedProposal]:
     """
-    Serialize a LegislativeProposal (single or multiple) into a structured format,
-    cache the result, and return.
+    Serialize a LegislativeProposal into structured JSON and persist it into LegislativeProposalDenorm.
+    Only updates the record if the checksum (SHA256) changes.
     """
     async with in_transaction():
         if proposal_id:
@@ -47,10 +44,10 @@ async def serialized_proposal(proposal_id: Optional[int] = None) -> Optional[Ser
             ).order_by("-updated_at")
 
         for proposal in proposals:
-            # Skip proposals without procedures and consults
             has_procedures = await proposal.procedures.all().count()
             has_consults = await proposal.consults.all().count()
             if not has_procedures or not has_consults:
+                logger.info("skip_proposal_missing_data", proposal_id=proposal.id)
                 continue
 
             initiators: List[ProposalInitiator] = [
@@ -146,7 +143,24 @@ async def serialized_proposal(proposal_id: Optional[int] = None) -> Optional[Ser
                 "procedures": procedures,
             }
 
-            await json_cache.set(f"proposal:{proposal.id}", proposal_data, ttl=CACHE_TTL)
-            logger.info("processed_proposal", proposal_id=proposal.id)
+            # Compute checksum
+            payload_json = json.dumps(proposal_data, sort_keys=True)
+            checksum = hashlib.sha256(payload_json.encode()).hexdigest()
+
+            denorm, created = await LegislativeProposalDenorm.get_or_create(
+                proposal=proposal,
+                defaults={"payload": proposal_data, "checksum": checksum, "notified": False},
+            )
+
+            if not created and denorm.checksum != checksum:
+                denorm.payload = proposal_data
+                denorm.checksum = checksum
+                denorm.notified = False
+                await denorm.save()
+                logger.info("updated_denorm", proposal_id=proposal.id)
+            elif created:
+                logger.info("created_denorm", proposal_id=proposal.id)
+            else:
+                logger.info("no_change_detected", proposal_id=proposal.id)
 
             return proposal_data
