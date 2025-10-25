@@ -10,7 +10,10 @@ class LegislativeProposal(Model, TimeStampedMixin):
     normalized_title = fields.CharField(max_length=2044, null=True, index=True)
     idp = fields.IntField(null=True, unique=True)
     senate_registration_number = fields.CharField(max_length=50, null=True)
-    first_senate_registration_number = fields.CharField(max_length=50, null=True)
+    first_senate_registration_number = fields.CharField(
+        max_length=50,
+        null=True,
+    )
     cdep_registration_number = fields.CharField(max_length=50, null=True)
     government_registration_number = fields.CharField(max_length=50, null=True)
     first_chamber = fields.CharField(max_length=50)
@@ -148,7 +151,7 @@ class LegislativeProposalDenorm(Model, TimeStampedMixin):
     )
 
     payload = fields.JSONField(
-        description="Serialized JSON snapshot of the full legislative proposal",
+        description="Serialized JSON snapshot of the full legislative proposal"
     )
 
     checksum = fields.CharField(
@@ -159,7 +162,7 @@ class LegislativeProposalDenorm(Model, TimeStampedMixin):
 
     notified = fields.BooleanField(
         default=False,
-        description="Whether users have been notified about this proposal update",
+        description=("Whether users have been notified about this proposal update"),
     )
 
     class Meta:

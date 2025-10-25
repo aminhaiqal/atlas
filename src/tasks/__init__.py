@@ -1,1 +1,0 @@
-from .denorm_proposal import serialized_proposal

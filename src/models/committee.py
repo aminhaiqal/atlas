@@ -6,7 +6,7 @@ class CdePCommittee(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
     committeeId = fields.CharField(max_length=255, unique=True)
-    url = fields.CharField(max_length=2083, null=True)  # URLs stored as CharField
+    url = fields.CharField(max_length=2083, null=True)
     chamber = fields.CharField(max_length=2, null=True)
     type = fields.CharField(max_length=255, null=True)
     legislature = fields.CharField(max_length=255, null=True)

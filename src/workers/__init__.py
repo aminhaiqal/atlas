@@ -1,1 +1,0 @@
-from .update_proposal import process_messages as process_proposal_messages

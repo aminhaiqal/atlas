@@ -2,8 +2,8 @@ import json
 import hashlib
 from typing import Optional, List
 from tortoise.transactions import in_transaction
-from src.models import LegislativeProposal, LegislativeProposalDenorm
-from src.schemas import (
+from src.models.proposal import LegislativeProposal, LegislativeProposalDenorm
+from src.schemas.proposal import (
     SerializedProposal,
     ProposalDetails,
     ProposalInitiator,
@@ -21,7 +21,8 @@ async def serialized_proposal(
     proposal_id: Optional[int] = None,
 ) -> Optional[SerializedProposal]:
     """
-    Serialize a LegislativeProposal into structured JSON and persist it into LegislativeProposalDenorm.
+    Serialize a LegislativeProposal into structured JSON and persist it into
+    LegislativeProposalDenorm.
     Only updates the record if the checksum (SHA256) changes.
     """
     async with in_transaction():
@@ -95,13 +96,11 @@ async def serialized_proposal(
                 procedures.append(
                     {
                         "id": procedure.id,
-                        "date": procedure.date.isoformat() if procedure.date else None,
+                        "date": (d := procedure.date) and d.isoformat(),
                         "action": procedure.action,
                         "short_action": procedure.short_action,
                         "chamber": procedure.chamber,
-                        "termen": (
-                            procedure.termen.isoformat() if procedure.termen else None
-                        ),
+                        "termen": (procedure.termen and procedure.termen.isoformat()),
                         "attachment": documents,
                     }
                 )
@@ -142,10 +141,16 @@ async def serialized_proposal(
                     **{
                         "title": proposal.title,
                         "idp": proposal.idp,
-                        "senate_registration_number": proposal.senate_registration_number,
-                        "first_senate_registration_number": proposal.first_senate_registration_number,
-                        "cdep_registration_number": proposal.cdep_registration_number,
-                        "government_registration_number": proposal.government_registration_number,
+                        "senate_registration_number": (
+                            proposal.senate_registration_number
+                        ),
+                        "first_senate_registration_number": (
+                            proposal.first_senate_registration_number
+                        ),
+                        "cdep_registration_number": (proposal.cdep_registration_number),
+                        "government_registration_number": (
+                            proposal.government_registration_number
+                        ),
                         "first_chamber": proposal.first_chamber,
                         "initiative": proposal.initiative,
                         "opinion": proposal.opinion,

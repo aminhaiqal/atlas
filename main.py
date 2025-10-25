@@ -2,8 +2,8 @@ import asyncio
 import signal
 
 from src.db import init_db, close_db
-from src.workers import process_proposal_messages
-from src.middleware import setup_logging
+from src.workers.update_proposal import process_messages as process_proposal_messages
+from src.middleware.logging import setup_logging
 
 logger = setup_logging()
 shutdown_event = asyncio.Event()

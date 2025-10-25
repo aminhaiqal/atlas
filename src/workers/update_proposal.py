@@ -5,7 +5,7 @@ import boto3
 import structlog
 from dotenv import load_dotenv
 
-from src.tasks import serialized_proposal
+from src.tasks.denorm_proposal import serialized_proposal
 
 logger = structlog.get_logger()
 
@@ -65,7 +65,10 @@ async def delete_sqs_messages(entries):
 
 
 async def process_messages(shutdown_event: asyncio.Event):
-    """Continuously poll SQS and process messages concurrently, logging only failures."""
+    """
+    Continuously poll SQS and process messages concurrently,
+    logging only failures.
+    """
     while not shutdown_event.is_set():
         try:
             response = await poll_sqs_messages()
