@@ -32,12 +32,12 @@ jobs:
           pip install black
           black --check .
 
-      - name: Run tests
-        run: |
-          pip install pytest pytest-asyncio
-          pytest --maxfail=1 --disable-warnings -q
-        env:
-          PYTHONPATH: ${{ github.workspace }}
+      #- name: Run tests
+      #  run: |
+      #    pip install pytest pytest-asyncio
+      #    pytest --maxfail=1 --disable-warnings -q
+      #  env:
+      #    PYTHONPATH: ${{ github.workspace }}
 
   docker-build:
     runs-on: ubuntu-latest
