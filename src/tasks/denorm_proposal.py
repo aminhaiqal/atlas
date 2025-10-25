@@ -92,7 +92,9 @@ async def serialized_proposal(
                         "action": procedure.action,
                         "short_action": procedure.short_action,
                         "chamber": procedure.chamber,
-                        "termen": procedure.termen.isoformat() if procedure.termen else None,
+                        "termen": (
+                            procedure.termen.isoformat() if procedure.termen else None
+                        ),
                         "attachment": documents,
                     }
                 )
