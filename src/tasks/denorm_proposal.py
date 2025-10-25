@@ -3,15 +3,7 @@ import hashlib
 from typing import Optional, List
 from tortoise.transactions import in_transaction
 from src.models.proposal import LegislativeProposal, LegislativeProposalDenorm
-from src.schemas.proposal import (
-    SerializedProposal,
-    ProposalDetails,
-    ProposalInitiator,
-    ProposalConsult,
-    ProposalProcedure,
-    ProposalDocument,
-    ProposalOverview,
-)
+from src.schemas.proposal import SerializedProposal
 import structlog
 
 logger = structlog.get_logger()
@@ -59,7 +51,7 @@ async def serialized_proposal(
                 logger.info("skip_proposal_missing_data", proposal_id=proposal.id)
                 continue
 
-            initiators: List[ProposalInitiator] = [
+            initiators: List[dict] = [
                 {
                     "id": initiator.id,
                     "name": initiator.name,
@@ -74,7 +66,7 @@ async def serialized_proposal(
                 async for initiator in proposal.initiators.all()
             ]
 
-            consults: List[ProposalConsult] = [
+            consults: List[dict] = [
                 {
                     "id": consult.id,
                     "name": consult.name,
@@ -83,24 +75,24 @@ async def serialized_proposal(
                 async for consult in proposal.consults.all()
             ]
 
-            procedures: List[ProposalProcedure] = []
+            procedures: List[dict] = []
             async for procedure in proposal.procedures.all().order_by("-date"):
                 documents = [
-                    ProposalDocument(
-                        id=doc.id,
-                        name=doc.name,
-                        url=doc.link,
-                    )
+                    {
+                        "id": doc.id,
+                        "name": doc.name,
+                        "url": doc.link,
+                    }
                     async for doc in procedure.documents.all()
                 ]
                 procedures.append(
                     {
                         "id": procedure.id,
-                        "date": (d := procedure.date) and d.isoformat(),
+                        "date": procedure.date.isoformat() if procedure.date else None,
                         "action": procedure.action,
                         "short_action": procedure.short_action,
                         "chamber": procedure.chamber,
-                        "termen": (procedure.termen and procedure.termen.isoformat()),
+                        "termen": procedure.termen.isoformat() if procedure.termen else None,
                         "attachment": documents,
                     }
                 )
@@ -108,7 +100,7 @@ async def serialized_proposal(
             latest_overview = (
                 await proposal.overview.all().order_by("-created_at").first()
             )
-            overview: ProposalOverview = (
+            overview: dict = (
                 {
                     "id": latest_overview.id,
                     "summary": latest_overview.summary,
@@ -133,42 +125,34 @@ async def serialized_proposal(
                 latest_procedure.date.isoformat() if latest_procedure else None
             )
 
-            proposal_data: SerializedProposal = {
+            proposal_data: dict = {
                 "proposal_id": proposal.id,
                 "created_at": created_at,
                 "updated_at": latest_action_date,
-                "proposal": ProposalDetails(
-                    **{
-                        "title": proposal.title,
-                        "idp": proposal.idp,
-                        "senate_registration_number": (
-                            proposal.senate_registration_number
-                        ),
-                        "first_senate_registration_number": (
-                            proposal.first_senate_registration_number
-                        ),
-                        "cdep_registration_number": (proposal.cdep_registration_number),
-                        "government_registration_number": (
-                            proposal.government_registration_number
-                        ),
-                        "first_chamber": proposal.first_chamber,
-                        "initiative": proposal.initiative,
-                        "opinion": proposal.opinion,
-                        "urgent_procedure": proposal.urgent_procedure,
-                        "status": proposal.status,
-                        "status_cdep": proposal.status_cdep,
-                        "status_senate": proposal.status_senate,
-                        "law_character": proposal.law_character,
-                        "deadline": proposal.deadline,
-                        "year_issue": proposal.year_issue,
-                        "active": proposal.active,
-                        "published": proposal.published,
-                        "senate_active": proposal.senate_active,
-                        "cdep_active": proposal.cdep_active,
-                        "promulgare": proposal.promulgare,
-                        "matching_title": proposal.matching_title,
-                    }
-                ),
+                "proposal": {
+                    "title": proposal.title,
+                    "idp": proposal.idp,
+                    "senate_registration_number": proposal.senate_registration_number,
+                    "first_senate_registration_number": proposal.first_senate_registration_number,
+                    "cdep_registration_number": proposal.cdep_registration_number,
+                    "government_registration_number": proposal.government_registration_number,
+                    "first_chamber": proposal.first_chamber,
+                    "initiative": proposal.initiative,
+                    "opinion": proposal.opinion,
+                    "urgent_procedure": proposal.urgent_procedure,
+                    "status": proposal.status,
+                    "status_cdep": proposal.status_cdep,
+                    "status_senate": proposal.status_senate,
+                    "law_character": proposal.law_character,
+                    "deadline": proposal.deadline,
+                    "year_issue": proposal.year_issue,
+                    "active": proposal.active,
+                    "published": proposal.published,
+                    "senate_active": proposal.senate_active,
+                    "cdep_active": proposal.cdep_active,
+                    "promulgare": proposal.promulgare,
+                    "matching_title": proposal.matching_title,
+                },
                 "initiators": initiators,
                 "consults": consults,
                 "overview": overview,

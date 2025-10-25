@@ -36,6 +36,8 @@ jobs:
         run: |
           pip install pytest pytest-asyncio
           pytest --maxfail=1 --disable-warnings -q
+        env:
+          PYTHONPATH: ${{ github.workspace }}
 
   docker-build:
     runs-on: ubuntu-latest
