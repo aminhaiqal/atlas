@@ -2,8 +2,10 @@ import asyncio
 import signal
 
 from src.db import init_db, close_db
+from src.redis import redis_client
 from src.workers.update_proposal import process_messages as process_proposal_messages
 from src.middleware.logging import setup_logging
+
 
 logger = setup_logging()
 shutdown_event = asyncio.Event()
@@ -12,6 +14,8 @@ shutdown_event = asyncio.Event()
 async def main():
     await init_db()
     logger.info("database_initialized", status="ok")
+    await redis_client.connect()
+    logger.info("redis_initialized", status="ok")
 
     # Start the SQS worker as a task
     worker_task = asyncio.create_task(process_proposal_messages(shutdown_event))
@@ -28,6 +32,9 @@ async def main():
 
     await close_db()
     logger.info("database_closed", status="ok")
+
+    await redis_client.close()
+    logger.info("redis_closed", status="ok")
 
 
 def handle_shutdown(*_):

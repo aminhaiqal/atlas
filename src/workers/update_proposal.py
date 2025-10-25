@@ -35,6 +35,7 @@ async def handle_message(message):
             logger.warning("invalid_message_body", message_id=message.get("MessageId"))
             return False
 
+        logger.info(f"Received proposal_id: {proposal_id}")
         await serialized_proposal(proposal_id)
         return True
 

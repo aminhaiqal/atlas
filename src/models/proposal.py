@@ -56,6 +56,7 @@ class LegislativeInitiator(Model, TimeStampedMixin):
     name = fields.CharField(max_length=255, null=True)
     position = fields.CharField(max_length=255, null=True)
     party = fields.CharField(max_length=255, null=True)
+    photo_url = fields.CharField(max_length=255, null=True)
     is_main = fields.BooleanField(default=False)
     deputies = fields.ManyToManyField(
         "models.Deputy",

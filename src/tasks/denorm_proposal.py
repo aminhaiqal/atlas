@@ -2,11 +2,50 @@ import json
 import hashlib
 from typing import Optional, List
 from tortoise.transactions import in_transaction
+
+from src.redis import redis_client
 from src.models.proposal import LegislativeProposal, LegislativeProposalDenorm
 from src.schemas.proposal import SerializedProposal
 import structlog
 
 logger = structlog.get_logger()
+
+REDIS_TTL_SECONDS = 60 * 60 * 24 * 30  # 30 days
+
+
+async def save_proposal_to_db(proposal, proposal_data: dict, checksum: str):
+    """
+    Store the serialized proposal in LegislativeProposalDenorm table.
+    """
+    denorm, created = await LegislativeProposalDenorm.get_or_create(
+        proposal=proposal,
+        defaults={
+            "payload": proposal_data,
+            "checksum": checksum,
+            "notified": False,
+        },
+    )
+
+    if not created and denorm.checksum != checksum:
+        denorm.payload = proposal_data
+        denorm.checksum = checksum
+        denorm.notified = False
+        await denorm.save()
+        logger.info("updated_denorm", proposal_id=proposal.id)
+    elif created:
+        logger.info("created_denorm", proposal_id=proposal.id)
+    else:
+        logger.info("no_change_detected", proposal_id=proposal.id)
+
+
+async def save_proposal_to_redis(proposal_id: int, proposal_data: dict):
+    """
+    Cache the serialized proposal into Redis under key proposal:{id}
+    """
+    key = f"proposal:{proposal_id}"
+    value = json.dumps(proposal_data)
+    await redis_client.set(key, value, ex=REDIS_TTL_SECONDS)
+    logger.info("cached_proposal_redis", key=key)
 
 
 async def serialized_proposal(
@@ -165,24 +204,8 @@ async def serialized_proposal(
             payload_json = json.dumps(proposal_data, sort_keys=True)
             checksum = hashlib.sha256(payload_json.encode()).hexdigest()
 
-            denorm, created = await LegislativeProposalDenorm.get_or_create(
-                proposal=proposal,
-                defaults={
-                    "payload": proposal_data,
-                    "checksum": checksum,
-                    "notified": False,
-                },
-            )
-
-            if not created and denorm.checksum != checksum:
-                denorm.payload = proposal_data
-                denorm.checksum = checksum
-                denorm.notified = False
-                await denorm.save()
-                logger.info("updated_denorm", proposal_id=proposal.id)
-            elif created:
-                logger.info("created_denorm", proposal_id=proposal.id)
-            else:
-                logger.info("no_change_detected", proposal_id=proposal.id)
+            # Persist in DB and cache in Redis
+            await save_proposal_to_db(proposal, proposal_data, checksum)
+            await save_proposal_to_redis(proposal.id, proposal_data)
 
             return proposal_data
