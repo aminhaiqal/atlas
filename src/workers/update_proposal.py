@@ -60,10 +60,7 @@ async def delete_sqs_messages(entries):
     if not entries:
         return
     await asyncio.to_thread(
-        lambda: sqs.delete_message_batch(
-            QueueUrl=SQS_QUEUE_URL,
-            Entries=entries
-        )
+        lambda: sqs.delete_message_batch(QueueUrl=SQS_QUEUE_URL, Entries=entries)
     )
 
 
@@ -80,8 +77,7 @@ async def process_messages(shutdown_event: asyncio.Event):
 
             # process concurrently
             results = await asyncio.gather(
-                *[handle_message(m) for m in messages],
-                return_exceptions=True
+                *[handle_message(m) for m in messages], return_exceptions=True
             )
 
             delete_entries = [

@@ -3,6 +3,7 @@ from tortoise.models import Model
 
 from src.models import CustomUser
 
+
 class PolicyCategory(Model):
     id = fields.IntField(pk=True)
     category_name = fields.CharField(max_length=255, unique=True, index=True)

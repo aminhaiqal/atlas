@@ -1,6 +1,7 @@
 from tortoise.models import Model
 from tortoise import fields
 
+
 class CdePCommittee(Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255)
@@ -13,10 +14,15 @@ class CdePCommittee(Model):
     class Meta:
         table = "parliament_committees"
 
+
 class CommitteeMembership(Model):
     id = fields.IntField(pk=True)
-    deputy = fields.ForeignKeyField('models.Deputy', related_name='committee_memberships', on_delete=fields.CASCADE)
-    committee = fields.ForeignKeyField('models.CdePCommittee', related_name='memberships', on_delete=fields.CASCADE)
+    deputy = fields.ForeignKeyField(
+        "models.Deputy", related_name="committee_memberships", on_delete=fields.CASCADE
+    )
+    committee = fields.ForeignKeyField(
+        "models.CdePCommittee", related_name="memberships", on_delete=fields.CASCADE
+    )
     position = fields.CharField(max_length=255)
 
     class Meta:

@@ -12,5 +12,6 @@ async def init_db():
         modules={"models": ["src.models"]},
     )
 
+
 async def close_db():
     await Tortoise.close_connections()

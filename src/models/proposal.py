@@ -3,6 +3,7 @@ from tortoise import fields
 
 from src.models.timestamp import TimeStampedMixin
 
+
 class LegislativeProposal(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)
     title = fields.TextField()
@@ -30,18 +31,19 @@ class LegislativeProposal(Model, TimeStampedMixin):
     matching_title = fields.TextField(null=True)
     latest_procedure_date = fields.DateField(null=True)
     oldest_procedure_date = fields.DateField(null=True)
-    
+
     report_cttee = fields.ManyToManyField(
         "models.CdePCommittee",
         related_name="reporting_proposals",
         through="legislative_proposal_report_cttee",
         forward_key="cdepcommittee_id",
-        backward_key="legislativeproposal_id"
+        backward_key="legislativeproposal_id",
     )
 
     class Meta:
         table = "legislative_proposal"
-        
+
+
 class LegislativeInitiator(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)
     legislative_proposal = fields.ForeignKeyField(
@@ -59,9 +61,10 @@ class LegislativeInitiator(Model, TimeStampedMixin):
         forward_key="deputy_id",
         backward_key="legislativeinitiator_id",
     )
-    
+
     class Meta:
         table = "scrape_legislative_legislativeinitiator"
+
 
 class LegislativeConsult(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)
@@ -79,12 +82,11 @@ class LegislativeConsult(Model, TimeStampedMixin):
     class Meta:
         table = "scrape_legislative_legislativeconsult"
 
+
 class LegislativeSummary(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)
     legislative_proposal = fields.ForeignKeyField(
-        "models.LegislativeProposal",
-        related_name="overview",
-        on_delete=fields.CASCADE
+        "models.LegislativeProposal", related_name="overview", on_delete=fields.CASCADE
     )
     summary = fields.TextField(null=True)
     categories = fields.ManyToManyField(
@@ -97,6 +99,7 @@ class LegislativeSummary(Model, TimeStampedMixin):
 
     class Meta:
         table = "scrape_legislative_legislativesummary"
+
 
 class LegislativeProcedure(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)
@@ -115,7 +118,8 @@ class LegislativeProcedure(Model, TimeStampedMixin):
 
     class Meta:
         table = "scrape_legislative_legislativeprocedure"
-    
+
+
 class ProcedureDocument(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)
     legislative_procedure = fields.ForeignKeyField(
@@ -131,6 +135,7 @@ class ProcedureDocument(Model, TimeStampedMixin):
 
     class Meta:
         table = "scrape_legislative_proceduredocument"
+
 
 class LegislativeProposalDenorm(Model, TimeStampedMixin):
     id = fields.IntField(pk=True)

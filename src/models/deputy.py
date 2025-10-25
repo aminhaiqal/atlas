@@ -15,7 +15,7 @@ class Deputy(Model):
     member_until = fields.DateField(null=True)
     profile = fields.JSONField(null=True)
     search_vector = fields.TextField(null=True)
-    
+
     assigned_committees = fields.ManyToManyField(
         "models.CdePCommittee", related_name="assigned_deputies", blank=True
     )
@@ -24,7 +24,7 @@ class Deputy(Model):
         "models.CdePCommittee",
         related_name="deputies_ctte_membership",
         through="committeemembership",  # lowercase class name by default
-        blank=True
+        blank=True,
     )
 
     active = fields.BooleanField(default=True)

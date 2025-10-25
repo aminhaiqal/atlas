@@ -2,6 +2,7 @@ import logging
 import structlog
 import sys
 
+
 def setup_logging():
     """
     Configure structured logging for the worker.
@@ -12,7 +13,7 @@ def setup_logging():
 
     structlog.configure(
         processors=[
-            structlog.contextvars.merge_contextvars,   # Support async contexts
+            structlog.contextvars.merge_contextvars,  # Support async contexts
             timestamper,
             structlog.stdlib.add_log_level,
             structlog.stdlib.add_logger_name,
