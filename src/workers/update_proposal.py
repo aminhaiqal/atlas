@@ -1,17 +1,28 @@
+import os
 import asyncio
 import json
 import boto3
 import structlog
+from dotenv import load_dotenv
 
 from src.tasks import serialized_proposal
 
 logger = structlog.get_logger()
 
-SQS_QUEUE_URL = "https://sqs.eu-central-1.amazonaws.com/1234567890/monitorscape-proposal-updates"
-MAX_CONCURRENT_TASKS = 10
+load_dotenv()
 
-# Create boto3 SQS client (thread-safe)
-sqs = boto3.client("sqs", region_name="eu-central-1")
+logger = structlog.get_logger()
+
+SQS_QUEUE_URL = os.getenv("SQS_QUEUE_URL")
+MAX_CONCURRENT_TASKS = int(os.getenv("MAX_CONCURRENT_TASKS", 10))
+
+
+sqs = boto3.client(
+    "sqs",
+    region_name=os.getenv("AWS_REGION"),
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+)
 
 
 async def handle_message(message):

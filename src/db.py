@@ -1,8 +1,14 @@
+import os
 from tortoise import Tortoise
+from dotenv import load_dotenv
+
+load_dotenv()
+DB_URL = os.getenv("DB_URL")
+
 
 async def init_db():
     await Tortoise.init(
-        db_url="postgres://user:password@localhost:5432/monitorscape",
+        db_url=DB_URL,
         modules={"models": ["src.models"]},
     )
 
