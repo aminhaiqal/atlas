@@ -55,8 +55,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t myorg/monitorscape-worker:latest .
+          docker build -t aminhaiqal492/atlas:latest .
 
       - name: Push Docker image
         run: |
-          docker push myorg/monitorscape-worker:latest
+          docker push aminhaiqal492/atlas:latest
