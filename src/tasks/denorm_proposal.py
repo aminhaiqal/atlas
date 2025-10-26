@@ -44,7 +44,7 @@ async def save_proposal_to_redis(proposal_id: int, proposal_data: dict):
     """
     Cache the serialized proposal into Redis under key proposal:{id}
     """
-    key = f"proposal:{proposal_id}"
+    key = f":1:proposal:{proposal_id}"
     value = json.dumps(proposal_data)
     await redis_client.set(key, value, ex=REDIS_TTL_SECONDS)
     logger.info("cached_proposal_redis", key=key)
