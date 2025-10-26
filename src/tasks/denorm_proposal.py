@@ -15,25 +15,27 @@ REDIS_TTL_SECONDS = 60 * 60 * 24 * 30  # 30 days
 
 async def save_proposal_to_db(proposal, proposal_data: dict, checksum: str):
     """
-    Store the serialized proposal in LegislativeProposalDenorm table.
+    Upsert the serialized proposal into LegislativeProposalDenorm.
+    Only updates if checksum differs.
     """
-    denorm, created = await LegislativeProposalDenorm.get_or_create(
-        proposal=proposal,
-        defaults={
-            "payload": proposal_data,
-            "checksum": checksum,
-            "notified": False,
-        },
-    )
+    denorm = await LegislativeProposalDenorm.filter(proposal=proposal).first()
 
-    if not created and denorm.checksum != checksum:
+    if not denorm:
+        await LegislativeProposalDenorm.create(
+            proposal=proposal,
+            payload=proposal_data,
+            checksum=checksum,
+            notified=False,
+        )
+        logger.info("created_denorm", proposal_id=proposal.id)
+
+    elif denorm.checksum != checksum:
         denorm.payload = proposal_data
         denorm.checksum = checksum
         denorm.notified = False
-        await denorm.save()
+        await denorm.save(update_fields=["payload", "checksum", "notified"])
         logger.info("updated_denorm", proposal_id=proposal.id)
-    elif created:
-        logger.info("created_denorm", proposal_id=proposal.id)
+
     else:
         logger.info("no_change_detected", proposal_id=proposal.id)
 

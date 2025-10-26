@@ -28,6 +28,31 @@ class RedisClient:
         if self.redis:
             await self.redis.close()
 
+    # ------------------------
+    # Basic key-value ops
+    # ------------------------
+
+    async def set(self, key: str, value: str, ex: int = None):
+        """Set a key with optional TTL (in seconds)."""
+        if self.redis is None:
+            raise RuntimeError("Redis not connected. Call connect() first.")
+        return await self.redis.set(key, value, ex=ex)
+    
+    async def get(self, key: str):
+        """Get a key's value."""
+        if self.redis is None:
+            raise RuntimeError("Redis not connected. Call connect() first.")
+        return await self.redis.get(key)
+    
+    async def delete(self, key: str):
+        """Delete a key."""
+        if self.redis is None:
+            raise RuntimeError("Redis not connected. Call connect() first.")
+        return await self.redis.delete(key)
+
+    # ------------------------
+    # Hash ops
+    # ------------------------
     async def hset(self, key: str, mapping: dict = None, **kwargs):
         """Set hash fields"""
         if self.redis is None:
@@ -51,14 +76,6 @@ class RedisClient:
                 "Redis connection not established. Call connect() first."
             )
         return await self.redis.expire(key, time)
-
-    async def delete(self, key: str):
-        """Delete a key"""
-        if self.redis is None:
-            raise RuntimeError(
-                "Redis connection not established. Call connect() first."
-            )
-        return await self.redis.delete(key)
-
+    
 
 redis_client = RedisClient()
