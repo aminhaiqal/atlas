@@ -37,13 +37,13 @@ class RedisClient:
         if self.redis is None:
             raise RuntimeError("Redis not connected. Call connect() first.")
         return await self.redis.set(key, value, ex=ex)
-    
+
     async def get(self, key: str):
         """Get a key's value."""
         if self.redis is None:
             raise RuntimeError("Redis not connected. Call connect() first.")
         return await self.redis.get(key)
-    
+
     async def delete(self, key: str):
         """Delete a key."""
         if self.redis is None:
@@ -76,6 +76,6 @@ class RedisClient:
                 "Redis connection not established. Call connect() first."
             )
         return await self.redis.expire(key, time)
-    
+
 
 redis_client = RedisClient()
